@@ -22,48 +22,66 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ transactions, stats }) => 
     setLoading(true);
     setError(null);
 
+    const prompt = `
+      Bạn là một chuyên gia tư vấn tài chính cá nhân cho nhân viên văn phòng ở Việt Nam.
+      Dưới đây là thống kê chi tiêu của người dùng trong tuần này:
+      - Tổng chi tiêu: ${formatVND(stats.total)}
+      - Cơ cấu chi tiêu:
+      ${stats.categoryBreakdown.map((c: any) => `  + ${c.category}: ${formatVND(c.amount)}`).join('\n')}
+      
+      Chi tiết các giao dịch gần đây:
+      ${transactions.slice(0, 10).map((t: any) => `- ${t.date.split('T')[0]}: ${t.category} - ${formatVND(t.amount)} (${t.note})`).join('\n')}
+
+      Hãy phân tích ngắn gọn (khoảng 3-4 câu) và đưa ra 1-2 lời khuyên cụ thể, thực tế để tối ưu chi tiêu cho những ngày tiếp theo.
+      Giọng điệu thân thiện, động viên và chuyên nghiệp. Sử dụng tiếng Việt.
+    `;
+
     try {
+      let resultText = '';
       const apiKey = "AIzaSyCM9xG-THrJgtvmtUVMmSsSvDJ6DCQJhLY";
-      const genAI = new GoogleGenerativeAI(apiKey);
 
-      const prompt = `
-        Bạn là một chuyên gia tư vấn tài chính cá nhân cho nhân viên văn phòng ở Việt Nam.
-        Dưới đây là thống kê chi tiêu của người dùng trong tuần này:
-        - Tổng chi tiêu: ${formatVND(stats.total)}
-        - Cơ cấu chi tiêu:
-        ${stats.categoryBreakdown.map((c: any) => `  + ${c.category}: ${formatVND(c.amount)}`).join('\n')}
-        
-        Chi tiết các giao dịch gần đây:
-        ${transactions.slice(0, 10).map((t: any) => `- ${t.date.split('T')[0]}: ${t.category} - ${formatVND(t.amount)} (${t.note})`).join('\n')}
-
-        Hãy phân tích ngắn gọn (khoảng 3-4 câu) và đưa ra 1-2 lời khuyên cụ thể, thực tế để tối ưu chi tiêu cho những ngày tiếp theo.
-        Giọng điệu thân thiện, động viên và chuyên nghiệp. Sử dụng tiếng Việt.
-      `;
-
-      let response;
-      let lastError;
       const modelsToTry = [
         'gemini-1.5-pro',
         'gemini-1.5-flash',
         'gemini-pro'
       ];
 
+      let lastError;
+
       for (const modelName of modelsToTry) {
         try {
-          const fallbackModel = genAI.getGenerativeModel({ model: modelName });
-          response = await fallbackModel.generateContent(prompt);
-          break; // If successful, exit loop
+          const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData?.error?.message || `HTTP error! status: ${res.status}`);
+          }
+
+          const data = await res.json();
+          if (data.candidates && data.candidates[0].content.parts[0].text) {
+            resultText = data.candidates[0].content.parts[0].text;
+            break;
+          }
         } catch (e: any) {
           lastError = e;
           console.warn(`Model ${modelName} failed:`, e.message);
         }
       }
 
-      if (!response) {
+      if (!resultText) {
         throw lastError || new Error("All models failed.");
       }
 
-      setAdvice(response.response.text());
+      setAdvice(resultText);
     } catch (err: any) {
       console.error(err);
       setError("Lỗi: " + err.message);
