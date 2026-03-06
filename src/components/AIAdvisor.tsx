@@ -40,17 +40,33 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ transactions, stats }) => 
       let resultText = '';
       const apiKey = "AIzaSyCM9xG-THrJgtvmtUVMmSsSvDJ6DCQJhLY";
 
-      const modelsToTry = [
-        'gemini-1.5-pro',
-        'gemini-1.5-flash',
-        'gemini-pro'
-      ];
+      // Lấy danh sách model động hỗ trợ generateContent thay vì dùng danh sách cố định
+      const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+      const listRes = await fetch(listUrl);
+      if (!listRes.ok) {
+        throw new Error("Không thể tải danh sách model từ API.");
+      }
+      const listData = await listRes.json();
+      const availableModels = listData.models
+        ?.filter((m: any) => m.supportedGenerationMethods?.includes("generateContent"))
+        ?.map((m: any) => m.name.replace('models/', '')) || [];
+
+      // Sắp xếp ưu tiên các model flash
+      const modelsToTry = availableModels.sort((a: string, b: string) => {
+        if (a.includes('flash') && !b.includes('flash')) return -1;
+        if (!a.includes('flash') && b.includes('flash')) return 1;
+        return 0;
+      });
+
+      if (modelsToTry.length === 0) {
+        throw new Error("Không tìm thấy model nào hỗ trợ chức năng này.");
+      }
 
       let lastError;
 
       for (const modelName of modelsToTry) {
         try {
-          const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
           const res = await fetch(url, {
             method: 'POST',
             headers: {
