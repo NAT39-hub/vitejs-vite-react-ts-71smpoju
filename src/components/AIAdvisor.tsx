@@ -41,18 +41,29 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ transactions, stats }) => 
       `;
 
       let response;
-      const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro-latest', 'gemini-1.5-flash'];
+      let lastError;
+      const modelsToTry = [
+        'gemini-1.5-pro',
+        'gemini-1.5-flash',
+        'gemini-pro'
+      ];
+
       for (const modelName of modelsToTry) {
         try {
           const fallbackModel = genAI.getGenerativeModel({ model: modelName });
           response = await fallbackModel.generateContent(prompt);
           break; // If successful, exit loop
         } catch (e: any) {
-          if (modelName === modelsToTry[modelsToTry.length - 1]) throw e; // Throw if last model fails
+          lastError = e;
+          console.warn(`Model ${modelName} failed:`, e.message);
         }
       }
 
-      setAdvice(response?.response?.text() || 'Không thể lấy lời khuyên lúc này.');
+      if (!response) {
+        throw lastError || new Error("All models failed.");
+      }
+
+      setAdvice(response.response.text());
     } catch (err: any) {
       console.error(err);
       setError("Lỗi: " + err.message);
