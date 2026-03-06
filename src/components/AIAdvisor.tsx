@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Loader2, MessageSquareText } from 'lucide-react';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai'; // Dùng thư viện chuẩn
 import { Transaction, WeeklyStats } from '../types';
 import { formatVND } from '../utils';
 
@@ -23,32 +23,30 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ transactions, stats }) => 
     setError(null);
 
     try {
-      // Đã sửa sẵn thành import.meta.env để chạy trên StackBlitz
-      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
-
-      const prompt = `
-        Bạn là một chuyên gia tư vấn tài chính cá nhân cho nhân viên văn phòng ở Việt Nam.
-        Dưới đây là thống kê chi tiêu của người dùng trong tuần này:
-        - Tổng chi tiêu: ${formatVND(stats.total)}
-        - Cơ cấu chi tiêu:
-        ${stats.categoryBreakdown.map(c => `  + ${c.category}: ${formatVND(c.amount)}`).join('\n')}
-        
-        Chi tiết các giao dịch gần đây:
-        ${transactions.slice(0, 10).map(t => `- ${t.date.split('T')[0]}: ${t.category} - ${formatVND(t.amount)} (${t.note})`).join('\n')}
-
-        Hãy phân tích ngắn gọn (khoảng 3-4 câu) và đưa ra 1-2 lời khuyên cụ thể, thực tế để tối ưu chi tiêu cho những ngày tiếp theo.
-        Giọng điệu thân thiện, động viên và chuyên nghiệp. Sử dụng tiếng Việt.
-      `;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt,
+      // 1. Khởi tạo AI với Key bảo mật
+      const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+      
+      // 2. Thiết lập Model và Vai trò chuyên gia (System Instruction)
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        systemInstruction: "Bạn là chuyên gia phân tích tài chính cá nhân. Dựa trên dữ liệu chi tiêu tuần này (gồm số tiền, ngày, hạng mục), hãy thực hiện: 1. Tóm tắt tổng chi tiêu. 2. Chỉ ra 1 hạng mục đang chi quá tay. 3. Đưa ra 3 lời khuyên ngắn gọn để tiết kiệm cho tuần sau. Trả lời bằng tiếng Việt, súc tích, chuyên nghiệp."
       });
 
-      setAdvice(response.text || 'Không thể lấy lời khuyên lúc này.');
+      // 3. Chuẩn bị dữ liệu gửi đi
+      const prompt = `
+        Thống kê chi tiêu tuần này:
+        - Tổng chi: ${formatVND(stats.total)}
+        - Cơ cấu: ${stats.categoryBreakdown.map(c => `${c.category}: ${formatVND(c.amount)}`).join(', ')}
+        - Giao dịch gần đây: ${transactions.slice(0, 10).map(t => `${t.category}: ${formatVND(t.amount)} (${t.note})`).join('; ')}
+      `;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      
+      setAdvice(response.text() || 'Không thể lấy lời khuyên lúc này.');
     } catch (err) {
       console.error(err);
-      setError('Đã xảy ra lỗi khi kết nối với AI. Vui lòng kiểm tra lại API Key.');
+      setError('Đã xảy ra lỗi khi kết nối với AI. Vui lòng kiểm tra lại API Key trong cài đặt GitHub/Vercel.');
     } finally {
       setLoading(false);
     }
@@ -66,13 +64,23 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ transactions, stats }) => 
             <p className="text-sm text-indigo-700/80 dark:text-indigo-300/80">Nhận lời khuyên tài chính mỗi tối</p>
           </div>
         </div>
-        <button onClick={getAdvice} disabled={loading} className="flex items-center px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm">
+        <button 
+          onClick={getAdvice} 
+          disabled={loading} 
+          className="flex items-center px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+        >
           {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Đang phân tích...</> : <><MessageSquareText className="w-4 h-4 mr-2" />Phân tích ngay</>}
         </button>
       </div>
-      {error && <div className="mt-4 p-4 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl text-sm border border-red-100 dark:border-red-500/20 transition-colors duration-200">{error}</div>}
+      
+      {error && (
+        <div className="mt-4 p-4 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl text-sm border border-red-100 dark:border-red-500/20">
+          {error}
+        </div>
+      )}
+      
       {advice && !loading && (
-        <div className="mt-6 p-5 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-white/20 dark:border-gray-700/30 rounded-xl relative overflow-hidden transition-all duration-300 animate-fade-in-up">
+        <div className="mt-6 p-5 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-white/20 dark:border-gray-700/30 rounded-xl relative overflow-hidden transition-all duration-300">
           <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-blue-400"></div>
           <p className="text-gray-700 dark:text-gray-200 leading-relaxed whitespace-pre-line text-sm">{advice}</p>
         </div>
