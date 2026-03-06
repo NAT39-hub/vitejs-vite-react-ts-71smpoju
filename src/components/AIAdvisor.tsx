@@ -8,7 +8,7 @@ const getAdvice = async () => {
     const genAI = new GoogleGenerativeAI(apiKey);
     
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash', // Dùng flash cho nhẹ, nếu vẫn 404 thì đổi thành 'gemini-1.5-pro'
+      model: 'gemini-1.5-pro',
     });
 
     const prompt = `Phân tích chi tiêu tuần này giúp tôi: ${stats.total} VND...`;
