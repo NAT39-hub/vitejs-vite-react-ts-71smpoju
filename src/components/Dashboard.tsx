@@ -2,7 +2,7 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { WeeklyStats, Transaction } from '../types';
 import { formatVND, exportToExcel } from '../utils';
-import { Download, ChartPie, TrendingUp } from 'lucide-react'; // Đã đổi tên icon tránh trùng PieChart
+import { Download, ChartPie, TrendingUp } from 'lucide-react'; // Đã dùng ChartPie để tránh trùng tên
 
 interface DashboardProps {
   stats: WeeklyStats;
