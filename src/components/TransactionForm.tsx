@@ -89,12 +89,11 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
             <textarea 
               value={note} onChange={(e) => setNote(e.target.value)} rows={2} 
               className="block w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 font-bold text-slate-900 resize-none" 
-              placeholder="Hôm nay anh Tú mua gì thế?" 
+              placeholder="Nhập bí mật vào đây ^^" 
             />
           </div>
         </div>
 
-        {/* NÚT LƯU MÀU VÀNG GOLD ĐẲNG CẤP */}
         <button 
           type="submit" 
           className="w-full py-5 rounded-2xl font-black text-white uppercase tracking-widest

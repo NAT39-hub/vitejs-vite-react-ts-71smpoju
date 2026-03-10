@@ -5,7 +5,7 @@ import { Dashboard } from './components/Dashboard';
 import { TransactionForm } from './components/TransactionForm';
 import { TransactionList } from './components/TransactionList';
 import { AIAdvisor } from './components/AIAdvisor';
-import { Wallet, ShieldCheck, Zap } from 'lucide-react';
+import { Wallet, ShieldCheck } from 'lucide-react';
 import { MarketData } from './components/MarketData';
 
 export default function App() {
@@ -32,13 +32,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      {/* THANH TỶ GIÁ VIP: Hiện đầu tiên trên Mobile */}
+      {/* THANH TỶ GIÁ VIP: Đã xóa chữ Live Market, chỉ để lại số liệu */}
       <div className="vip-ticker-bar border-b border-amber-100 overflow-x-auto no-scrollbar sticky top-0 z-[60] bg-white">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center min-w-max">
-          <div className="flex items-center space-x-2 mr-6 pr-4 border-r border-amber-200">
-            <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
-            <span className="text-[11px] font-black text-amber-600 uppercase tracking-tighter">Live Market</span>
-          </div>
           <MarketData />
         </div>
       </div>
