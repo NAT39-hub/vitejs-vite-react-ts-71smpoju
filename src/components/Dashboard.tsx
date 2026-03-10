@@ -13,14 +13,14 @@ const COLORS = ['#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
 
 export const Dashboard: React.FC<DashboardProps> = ({ stats, transactions }) => {
   return (
-    <div className="space-y-8">
-      {/* Card Tổng chi tiêu - Highlight lớn */}
-      <div className="relative group overflow-hidden bg-white border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2.5rem] p-10 transition-all duration-500 hover:shadow-indigo-100">
+    <div className="space-y-8 animate-fade-in-up">
+      {/* Card Tổng chi tiêu - Đã đổi tiêu đề cho anh Tú */}
+      <div className="relative group overflow-hidden bg-white border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2.5rem] p-10 transition-all duration-500 hover:shadow-indigo-100/50">
         <div className="absolute top-0 right-0 p-8 opacity-5">
            <TrendingUp className="w-32 h-32 text-indigo-600" />
         </div>
         <div className="relative z-10">
-          <h2 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Tuần này anh Tú đã chi</h2>
+          <h2 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Tuần này đã chi</h2>
           <div className="flex items-baseline space-x-2">
             <span className="text-6xl font-black text-slate-900 tracking-tighter">
               {formatVND(stats.total).replace('₫', '')}
@@ -34,7 +34,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ stats, transactions }) => 
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Biểu đồ Ngày */}
+        {/* Biểu đồ Lịch sử chi tiêu */}
         <div className="bg-white border border-slate-200 shadow-sm rounded-[2rem] p-8">
           <h3 className="text-lg font-bold text-slate-800 mb-8 flex items-center">
             <TrendingUp className="w-5 h-5 mr-3 text-blue-500" /> Lịch sử chi tiêu
@@ -43,6 +43,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ stats, transactions }) => 
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.dailyBreakdown}>
                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 600, fill: '#94a3b8' }} dy={10} />
+                <YAxis hide />
                 <Tooltip cursor={{fill: '#f1f5f9'}} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                 <Bar dataKey="amount" radius={[8, 8, 8, 8]} fill="#4f46e5" barSize={30} />
               </BarChart>
@@ -50,7 +51,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ stats, transactions }) => 
           </div>
         </div>
 
-        {/* Biểu đồ Tròn */}
+        {/* Biểu đồ Cơ cấu danh mục */}
         <div className="bg-white border border-slate-200 shadow-sm rounded-[2rem] p-8">
           <h3 className="text-lg font-bold text-slate-800 mb-8 flex items-center">
             <ChartPie className="w-5 h-5 mr-3 text-emerald-500" /> Cơ cấu danh mục
@@ -69,7 +70,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ stats, transactions }) => 
         </div>
       </div>
 
-      {/* Nút Xuất Báo Cáo - GOLD PREMIUM EDITION */}
+      {/* NÚT XUẤT BÁO CÁO GOLD PREMIUM */}
       <div className="pt-6 flex flex-col items-center">
         <button 
           onClick={() => exportToExcel(transactions, stats.total)} 
@@ -83,7 +84,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ stats, transactions }) => 
             <Download className="w-6 h-6 mr-3 group-hover:animate-bounce" />
             Xuất báo cáo VIP .Excel
           </div>
-          {/* Hiệu ứng tia chớp lướt qua nút */}
+          {/* Hiệu ứng tia chớp lướt qua khi hover */}
           <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-shine" />
         </button>
         <p className="mt-5 text-[10px] text-slate-400 uppercase tracking-[0.5em] font-black">
