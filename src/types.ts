@@ -1,4 +1,13 @@
-export type Category = 'Ăn uống' | 'Di chuyển' | 'Cà phê' | 'Mua sắm' | 'Hóa đơn' | 'Khác';
+export type Category = 
+  | 'Ăn uống' 
+  | 'Di chuyển' 
+  | 'Cà phê' 
+  | 'Mua sắm' 
+  | 'Hóa đơn' 
+  | 'Cá nhân' 
+  | 'Học tập' 
+  | 'Sức khỏe' 
+  | 'Khác';
 
 export interface Transaction {
   id: string;
