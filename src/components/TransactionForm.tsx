@@ -17,7 +17,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
   const [note, setNote] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   
-  // State cho bộ Lịch VIP Custom
+  // State cho bộ Lịch VIP (Clone Apple style)
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
 
@@ -47,12 +47,21 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
   const month = calendarMonth.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
-  const startOffset = firstDay === 0 ? 6 : firstDay - 1; // Bắt đầu từ Thứ 2
+  const startOffset = firstDay === 0 ? 6 : firstDay - 1; // T2 là ngày đầu tuần
 
   const handleSelectDay = (day: number) => {
     const yyyy = year;
     const mm = String(month + 1).padStart(2, '0');
     const dd = String(day).padStart(2, '0');
+    setDate(`${yyyy}-${mm}-${dd}`);
+  };
+
+  const handleResetDate = () => {
+    const today = new Date();
+    setCalendarMonth(today);
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
     setDate(`${yyyy}-${mm}-${dd}`);
   };
 
@@ -64,7 +73,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
       </h3>
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Nhập số tiền */}
         <div>
           <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Số tiền (VND)</label>
           <div className="relative">
@@ -81,7 +89,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
         </div>
 
         <div className="grid grid-cols-1 gap-6">
-          {/* Nhập danh mục */}
           <div>
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Danh mục</label>
             <div className="relative">
@@ -98,7 +105,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
             </div>
           </div>
 
-          {/* Ô Chọn Ngày - Đã thay bằng nút bấm mở Lịch Custom */}
           <div>
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Ngày tháng</label>
             <button 
@@ -109,12 +115,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <CalendarIcon className="h-5 w-5 text-rose-500" />
               </div>
-              {date.split('-').reverse().join('/')} {/* Hiện định dạng DD/MM/YYYY */}
+              {/* Hiển thị: 10 thg 3, 2026 */}
+              {new Date(date).toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' })}
             </button>
           </div>
         </div>
 
-        {/* Nhập ghi chú */}
         <div>
           <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Ghi chú</label>
           <div className="relative">
@@ -139,33 +145,37 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
         </button>
       </form>
 
-      {/* POPUP LỊCH VIP KÍNH MỜ (100% TIẾNG VIỆT) */}
+      {/* POPUP LỊCH VIP - Y HỆT APPLE (Kính mờ, không nền xám) */}
       {showDatePicker && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in-up">
-          <div className="bg-[#1e293b]/90 backdrop-blur-2xl border border-slate-700 shadow-2xl rounded-[2.5rem] p-6 w-full max-w-[320px] text-white">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Lớp nền trong suốt tuyệt đối để đóng Lịch khi bấm ra ngoài */}
+          <div className="absolute inset-0 bg-transparent" onClick={() => setShowDatePicker(false)}></div>
+          
+          <div className="relative bg-[#1c1c1e]/85 backdrop-blur-2xl shadow-2xl rounded-[32px] p-5 w-full max-w-[320px] text-white animate-fade-in-up border border-white/10">
             
-            {/* Tiêu đề Tháng Năm */}
-            <div className="flex justify-between items-center mb-6">
-              <h4 className="text-xl font-bold tracking-tight text-white">
-                Tháng {month + 1} <span className="text-indigo-400">{year}</span>
+            {/* Header: Tháng Năm */}
+            <div className="flex justify-between items-center mb-4 px-1">
+              <h4 className="text-[17px] font-semibold tracking-tight text-white flex items-center">
+                Tháng {month + 1} {year}
+                <ChevronRight className="w-4 h-4 ml-1 text-[#0a84ff]" />
               </h4>
-              <div className="flex space-x-2">
-                <button type="button" onClick={() => setCalendarMonth(new Date(year, month - 1))} className="p-2 hover:bg-slate-700 rounded-full transition-all">
-                  <ChevronLeft className="w-5 h-5" />
+              <div className="flex space-x-3">
+                <button type="button" onClick={() => setCalendarMonth(new Date(year, month - 1))} className="p-1 hover:bg-white/10 rounded-full transition-all">
+                  <ChevronLeft className="w-6 h-6 text-white" />
                 </button>
-                <button type="button" onClick={() => setCalendarMonth(new Date(year, month + 1))} className="p-2 hover:bg-slate-700 rounded-full transition-all">
-                  <ChevronRight className="w-5 h-5" />
+                <button type="button" onClick={() => setCalendarMonth(new Date(year, month + 1))} className="p-1 hover:bg-white/10 rounded-full transition-all">
+                  <ChevronRight className="w-6 h-6 text-white" />
                 </button>
               </div>
             </div>
 
-            {/* Các Thứ trong tuần */}
-            <div className="grid grid-cols-7 gap-1 mb-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            {/* Thứ trong tuần */}
+            <div className="grid grid-cols-7 mb-2 text-center text-[12px] font-medium text-[#ebebf5]/60">
               {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(d => <div key={d}>{d}</div>)}
             </div>
 
-            {/* Các Ngày */}
-            <div className="grid grid-cols-7 gap-1">
+            {/* Lưới Ngày */}
+            <div className="grid grid-cols-7 gap-y-1 text-center">
               {Array.from({ length: startOffset }).map((_, i) => <div key={`empty-${i}`} />)}
               {Array.from({ length: daysInMonth }).map((_, i) => {
                 const day = i + 1;
@@ -175,24 +185,33 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
                     key={day}
                     type="button"
                     onClick={() => handleSelectDay(day)}
-                    className={`h-10 w-full rounded-2xl flex items-center justify-center font-bold text-sm transition-all
-                      ${isSelected ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/50' : 'text-slate-200 hover:bg-slate-700'}
-                    `}
+                    className="flex justify-center items-center py-1"
                   >
-                    {day}
+                    <span className={`w-9 h-9 flex items-center justify-center rounded-full text-[19px] transition-all
+                      ${isSelected ? 'bg-[#0a84ff] text-white font-semibold shadow-md' : 'text-white hover:bg-white/15 active:bg-white/20'}
+                    `}>
+                      {day}
+                    </span>
                   </button>
                 );
               })}
             </div>
 
-            {/* Nút Xong */}
-            <div className="mt-6 flex justify-end">
+            {/* Footer: Đặt lại & Xong */}
+            <div className="mt-5 flex justify-between items-center px-1">
+              <button 
+                type="button"
+                onClick={handleResetDate}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-[15px] font-medium transition-all"
+              >
+                Đặt lại
+              </button>
               <button 
                 type="button"
                 onClick={() => setShowDatePicker(false)}
-                className="flex items-center px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl font-bold transition-all active:scale-95"
+                className="w-10 h-10 bg-[#0a84ff] rounded-full flex items-center justify-center transition-all active:scale-90 shadow-md"
               >
-                <Check className="w-4 h-4 mr-2" /> Xong
+                <Check className="w-5 h-5 text-white" strokeWidth={3} />
               </button>
             </div>
           </div>
