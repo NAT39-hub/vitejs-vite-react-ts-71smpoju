@@ -12,16 +12,30 @@ const CATEGORIES: Category[] = [
 ];
 
 export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
-  const [amount, setAmount] = useState('');
+  const [amountDisplay, setAmountDisplay] = useState('');
   const [category, setCategory] = useState<Category>('Ăn uống');
   const [note, setNote] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
+  // Hàm tự động định dạng số 20.000 khi anh Tú gõ
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, ''); // Bỏ hết chữ, chỉ lấy số
+    if (rawValue) {
+      const formatted = parseInt(rawValue, 10).toLocaleString('vi-VN').replace(/,/g, '.');
+      setAmountDisplay(formatted);
+    } else {
+      setAmountDisplay('');
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || isNaN(Number(amount))) return;
-    onAdd(Number(amount), category, note, date);
-    setAmount('');
+    // Chuyển lại chuỗi 20.000 thành số 20000 để lưu trữ
+    const numericAmount = parseInt(amountDisplay.replace(/\./g, ''), 10);
+    if (!numericAmount || isNaN(numericAmount)) return;
+    
+    onAdd(numericAmount, category, note, date);
+    setAmountDisplay('');
     setNote('');
   };
 
@@ -40,10 +54,10 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
               <DollarSign className="h-5 w-5 text-amber-500" />
             </div>
             <input 
-              type="number" required min="0" step="1000" value={amount} 
-              onChange={(e) => setAmount(e.target.value)} 
-              className="block w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-amber-500 font-bold text-slate-900 transition-all" 
-              placeholder="Ví dụ: 50000" 
+              type="text" required value={amountDisplay} 
+              onChange={handleAmountChange} 
+              className="block w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-amber-500 font-bold text-slate-900 transition-all text-lg" 
+              placeholder="Ví dụ: 50.000" 
             />
           </div>
         </div>
@@ -68,13 +82,14 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
           <div>
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Ngày tháng</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                 <CalendarIcon className="h-5 w-5 text-rose-500" />
               </div>
+              {/* Ô Lịch đã được phủ lớp kính mờ (backdrop-blur) theo ý anh */}
               <input 
                 type="date" required value={date} 
                 onChange={(e) => setDate(e.target.value)} 
-                className="block w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-rose-500 font-bold text-slate-900" 
+                className="block w-full pl-12 pr-4 py-4 bg-white/30 backdrop-blur-md border border-slate-200/50 shadow-inner rounded-2xl focus:ring-2 focus:ring-rose-500 font-bold text-slate-900 transition-all relative z-0" 
               />
             </div>
           </div>
@@ -100,7 +115,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onAdd }) => {
                      bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#B8860B]
                      shadow-[0_10px_30px_rgba(212,175,55,0.3)] hover:-translate-y-1 active:scale-95 transition-all animate-shine"
         >
-          Lưu chi tiêu ngay
+          Ấn để thêm mục đã đớp.
         </button>
       </form>
     </div>
